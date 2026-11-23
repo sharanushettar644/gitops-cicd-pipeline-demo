@@ -1,0 +1,61 @@
+name: promote to production
+
+# Opens a pull request that changes the production image tag. Merging that PR
+# (after review) is the production deployment; Argo CD syncs it from Git.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag to promote (leave empty to promote what is running in staging)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve tag
+        id: tag
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          TAG="${INPUT_TAG:-$(yq '.image.tag' helm/sample-api/values-staging.yaml)}"
+          if [ -z "$TAG" ] || [ "$TAG" = "latest" ]; then
+            echo "::error::Refusing to promote '$TAG' - promote an immutable sha-* tag."
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Verify the image exists in GHCR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          echo "${GH_TOKEN}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker manifest inspect "ghcr.io/${{ github.repository }}:${TAG}" > /dev/null
+
+      - name: Update values-prod.yaml
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: yq -i '.image.tag = strenv(TAG)' helm/sample-api/values-prod.yaml
+
+      - name: Open promotion pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: promote/${{ steps.tag.outputs.tag }}
+          title: "deploy(prod): promote sample-api ${{ steps.tag.outputs.tag }}"
+          commit-message: "deploy(prod): sample-api ${{ steps.tag.outputs.tag }}"
+          body: |
+            Promotes **${{ steps.tag.outputs.tag }}** (currently running in staging) to production.
+
+            Merging this PR deploys it: Argo CD syncs `sample-api-prod` from `main`.
+            To roll back, revert this PR.
+          labels: deploy,production
+          delete-branch: true
