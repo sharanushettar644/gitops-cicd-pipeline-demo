@@ -1,0 +1,10 @@
+# Staging: auto-deployed by Argo CD on every merge to main.
+# image.tag is updated automatically by the CI pipeline - do not edit by hand.
+image:
+  tag: latest
+
+environment: staging
+replicaCount: 1
+
+podDisruptionBudget:
+  enabled: false

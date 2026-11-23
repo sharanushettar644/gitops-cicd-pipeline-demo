@@ -1,0 +1,66 @@
+# Defaults shared by every environment. Per-environment overrides live in
+# values-staging.yaml and values-prod.yaml. CI only ever edits image.tag there.
+
+image:
+  repository: ghcr.io/sharanushettar644/gitops-cicd-pipeline-demo
+  tag: latest
+  pullPolicy: IfNotPresent
+
+environment: local
+
+replicaCount: 2
+
+serviceAccount:
+  create: true
+  name: ""
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: false
+  className: nginx
+  host: sample-api.local
+  annotations: {}
+  tls: []
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Adds the annotations that a Prometheus scrape config typically looks for.
+metrics:
+  scrapeAnnotations: true
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

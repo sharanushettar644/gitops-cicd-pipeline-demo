@@ -1,0 +1,5 @@
+{{ include "sample-api.fullname" . }} ({{ .Values.environment }}) is deployed with image tag {{ .Values.image.tag }}.
+
+Try it locally:
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "sample-api.fullname" . }} 8080:{{ .Values.service.port }}
+  curl http://localhost:8080/

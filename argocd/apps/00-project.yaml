@@ -1,0 +1,21 @@
+# Argo CD project: limits what the sample-api applications may deploy and where.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: sample-api
+  namespace: argocd
+spec:
+  description: Sample API - staging and production
+  sourceRepos:
+    - https://github.com/sharanushettar644/gitops-cicd-pipeline-demo.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: sample-api-staging
+    - server: https://kubernetes.default.svc
+      namespace: sample-api-prod
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

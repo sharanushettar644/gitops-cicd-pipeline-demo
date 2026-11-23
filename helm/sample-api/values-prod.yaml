@@ -1,0 +1,18 @@
+# Production: changed only through a reviewed "promote" pull request.
+# image.tag is updated by the promote workflow - do not edit by hand.
+image:
+  tag: latest
+
+environment: production
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
