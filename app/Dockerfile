@@ -6,7 +6,9 @@ ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt \
+ # The app never installs packages at runtime, so drop the installers too.
+ && pip uninstall -y pip setuptools wheel || true
 
 # ---- runtime stage: small image, non-root user, no build tools ----
 FROM python:3.12-slim AS runtime
@@ -17,7 +19,13 @@ ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONPATH=/app/src \
     APP_VERSION=${APP_VERSION}
 
-RUN groupadd --system --gid 10001 app \
+# Pick up OS security fixes published since the base image was built, and
+# remove the base image's own pip/setuptools (not needed at runtime).
+RUN apt-get update \
+ && apt-get upgrade -y --no-install-recommends \
+ && rm -rf /var/lib/apt/lists/* \
+ && { python -m pip uninstall -y pip setuptools wheel || true; } \
+ && groupadd --system --gid 10001 app \
  && useradd --system --uid 10001 --gid app --no-create-home app
 
 WORKDIR /app
