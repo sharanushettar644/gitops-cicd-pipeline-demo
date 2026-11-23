@@ -132,7 +132,7 @@ This creates a kind cluster, installs Argo CD, and applies `argocd/root-app.yaml
 **Sharanabasava Shettar**: DevOps Engineer | CKA, CKAD
 
 I build CI/CD pipelines and Kubernetes platforms on AWS, Azure and GCP.
-[LinkedIn](https://www.linkedin.com/in/sharanabasava-shettar)
+[LinkedIn](https://www.linkedin.com/in/sharan-shettar-0b699821a)
 
 ## License
 
